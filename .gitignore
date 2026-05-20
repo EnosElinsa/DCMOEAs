@@ -1,0 +1,33 @@
+# MATLAB generated files
+*.asv
+*.m~
+*.mex*
+!common/metrics/Hypervolume.mexw64
+!common/metrics/Hypervolume_MEX.mexw32
+
+# Simulink
+*.slx.r*
+*.mdl.r*
+
+# Results and output
+results/
+
+# MEX build artifacts
+*.o
+*.obj
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Kiro spec files
+.kiro/
+
+# Temporary files
+*.tmp
+*.log
