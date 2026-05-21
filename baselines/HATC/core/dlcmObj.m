@@ -1,8 +1,8 @@
 function [pop, popLCM, popDCM, typeFlag] = dlcmObj(kneeArray1, kneeArray2, popLCM, popDCM, typeFlag)
 % dlcmObj - Direction Learning and Cosine Mapping (objective space).
-%   Simplified 2D version of DLCM operating in objective space. Computes
-%   direction ratios, blends with centroid direction, and reconstructs
-%   predicted objectives via trigonometric mapping.
+%   Generalized M-dimensional version of DLCM operating in objective space.
+%   Converts direction vectors to hyperspherical coordinates, blends with
+%   centroid direction, and reconstructs predicted objectives.
 %
 % Inputs:
 %   kneeArray1 - [M x N] objective values at time K-1
@@ -17,19 +17,22 @@ function [pop, popLCM, popDCM, typeFlag] = dlcmObj(kneeArray1, kneeArray2, popLC
 %   popDCM     - DCM sub-population
 %   typeFlag   - updated type flag
 
+    epsilon = 1e-7;
+
     %% Sort both arrays by first objective for alignment
     [~, sortIdx1] = sort(kneeArray1(1, :));
     kneeArray1 = kneeArray1(:, sortIdx1);
     [~, sortIdx2] = sort(kneeArray2(1, :));
     kneeArray2 = kneeArray2(:, sortIdx2);
 
+    numDims = size(kneeArray1, 1);
     numIndividuals = size(kneeArray1, 2);
-    directionVec = kneeArray1 - kneeArray2;
+    directionVec = kneeArray1 - kneeArray2 + epsilon;
 
     %% Compute group centroid shift
     centroidPrev     = mean(kneeArray1', 1);
     centroidPrevPrev = mean(kneeArray2', 1);
-    centroidDelta    = centroidPrev' - centroidPrevPrev';
+    centroidDelta    = centroidPrev' - centroidPrevPrev' + epsilon;
 
     %% Compute individual scaling factors
     scalingFactors = zeros(1, numIndividuals);
@@ -40,19 +43,119 @@ function [pop, popLCM, popDCM, typeFlag] = dlcmObj(kneeArray1, kneeArray2, popLC
     scalingFactors = scalingFactors + normrnd(0, meanScaling);
     scaledDirection = abs(scalingFactors)' .* repmat(centroidDelta', numIndividuals, 1);
 
-    %% Compute 2D direction ratios
-    polarAngles = zeros(1, numIndividuals);
+    %% Convert individual direction vectors to hyperspherical angles
+    polarAngles = zeros(numDims - 1, numIndividuals);
     for j = 1:numIndividuals
-        polarAngles(1, j) = directionVec(1, j) / (directionVec(2, j) + 0.00001);
+        for i = 1:numDims - 2
+            tailNorm = sqrt(sum(directionVec(i + 1:end, j).^2));
+            polarAngles(i, j) = atan(tailNorm / (directionVec(i, j)));
+        end
     end
-    centroidAngle = centroidDelta(1) / (centroidDelta(2) + 0.0001);
+    lastAngleIdx = size(polarAngles, 1);
+    for j = 1:numIndividuals
+        polarAngles(lastAngleIdx, j) = atan(directionVec(lastAngleIdx + 1, j) / (directionVec(lastAngleIdx, j)));
+    end
 
-    %% Reconstruct predictions with blended angles
-    reconstructedPop = zeros(2, numIndividuals);
+    %% Convert centroid direction to hyperspherical angles
+    centroidAngles = zeros(1, numDims - 1);
+    for i = 1:numDims - 2
+        tailNorm = sqrt(sum(centroidDelta(i + 1:end).^2));
+        centroidAngles(i) = atan(tailNorm / (centroidDelta(i)));
+        if centroidAngles(i) < 0
+            centroidAngles(i) = centroidAngles(i) + pi;
+        end
+    end
+    lastIdx = length(centroidAngles);
+    centroidAngles(lastIdx) = atan(centroidDelta(lastIdx + 1) / (centroidDelta(lastIdx)));
+
+    %% Reconstruct and check sign consistency
+    directionVecT = directionVec';
+    reconstructedPop = zeros(numDims, numIndividuals);
+    cartesian = zeros(1, numDims);
+    centroidCartesian = zeros(1, numDims);
+
+    for num = 1:numIndividuals + 1
+        if num <= numIndividuals
+            angles = polarAngles(:, num);
+            vecMagnitude = norm(directionVecT(num, :));
+            for i = 1:numDims
+                if i == 1
+                    cartesian(i) = vecMagnitude * cos(angles(i));
+                elseif i < numDims
+                    sinProduct = 1;
+                    for j = 1:i - 1
+                        sinProduct = sinProduct * sin(angles(j));
+                    end
+                    cartesian(i) = vecMagnitude * sinProduct * cos(angles(i));
+                else
+                    sinProduct = 1;
+                    for j = 1:i - 1
+                        sinProduct = sinProduct * sin(angles(j));
+                    end
+                    cartesian(i) = vecMagnitude * sinProduct;
+                end
+            end
+            reconstructedPop(:, num) = cartesian;
+        else
+            angles = centroidAngles';
+            vecMagnitude = norm(centroidDelta);
+            for i = 1:numDims
+                if i == 1
+                    cartesian(i) = vecMagnitude * cos(angles(i));
+                elseif i < numDims
+                    sinProduct = 1;
+                    for j = 1:i - 1
+                        sinProduct = sinProduct * sin(angles(j));
+                    end
+                    cartesian(i) = vecMagnitude * sinProduct * cos(angles(i));
+                else
+                    sinProduct = 1;
+                    for j = 1:i - 1
+                        sinProduct = sinProduct * sin(angles(j));
+                    end
+                    cartesian(i) = vecMagnitude * sinProduct;
+                end
+            end
+            centroidCartesian = cartesian; %#ok<NASGU>
+        end
+    end
+
+    %% Adjust angles for sign consistency
+    reconstructionError = sum(kneeArray2 + reconstructedPop - kneeArray1, 1);
+    for k = 1:size(reconstructionError, 2)
+        if abs(reconstructionError(k)) > 1
+            if polarAngles(end, k) > 0
+                polarAngles(end, k) = polarAngles(end, k) - pi;
+            else
+                polarAngles(end, k) = polarAngles(end, k) + pi;
+            end
+        end
+    end
+
+    %% Final prediction: blend individual and centroid angles
+    reconstructedPop = zeros(numDims, numIndividuals);
+    cartesian = zeros(1, numDims);
+
     for num = 1:numIndividuals
-        blendedAngle = 0.5 * (centroidAngle' + polarAngles(:, num));
-        reconstructedPop(1, num) = norm(scaledDirection(num, :)) * cos(blendedAngle);
-        reconstructedPop(2, num) = norm(scaledDirection(num, :)) * sin(blendedAngle);
+        blendedAngles = 0.5 * (centroidAngles' + polarAngles(:, num));
+        for i = 1:numDims
+            if i == 1
+                cartesian(i) = norm(scaledDirection(num, :)) * cos(blendedAngles(i));
+            elseif i < numDims
+                sinProduct = 1;
+                for j = 1:i - 1
+                    sinProduct = sinProduct * sin(blendedAngles(j));
+                end
+                cartesian(i) = norm(scaledDirection(num, :)) * sinProduct * cos(blendedAngles(i));
+            else
+                sinProduct = 1;
+                for j = 1:i - 1
+                    sinProduct = sinProduct * sin(blendedAngles(j));
+                end
+                cartesian(i) = norm(scaledDirection(num, :)) * sinProduct;
+            end
+        end
+        reconstructedPop(:, num) = cartesian;
     end
 
     %% Apply DCM prediction

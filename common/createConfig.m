@@ -11,9 +11,6 @@ function config = createConfig(varargin)
     config.algo.popSize         = 100;          % population size N
     config.algo.maxGenPerEnv    = 50;           % maximum generations per environment
     config.algo.replacementRate = 0.2;          % replacement ratio on environment change
-    config.algo.operatorParams  = struct( ...
-        'proC', 1, 'disC', 20, ...              % SBX parameters
-        'proM', 1, 'disM', 20);                 % PM parameters
     config.algo.weights         = [];           % objective weights (empty = equal weights)
 
     %% ======================== run ========================

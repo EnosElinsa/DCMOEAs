@@ -1,6 +1,6 @@
 % runExample.m - DCMOEA benchmark framework example script
 %
-% Runs a complete trial using the DC-DTLZ1 test problem and the DCNSGAII_A baseline algorithm.
+% Runs a complete trial using the DC-DTLZ2 test problem and the DCNSGAII_A baseline algorithm.
 % Can be run directly without modifying any parameters.
 %
 % Output:
@@ -13,6 +13,9 @@
 %% ======================== Path setup ========================
 % Get project root directory (parent of examples)
 rootDir = fileparts(fileparts(mfilename('fullpath')));
+
+% Add project root (contains runBenchmark.m)
+addpath(rootDir);
 
 % Add framework common paths
 addpath(genpath(fullfile(rootDir, 'common')));
@@ -40,13 +43,14 @@ if ~isfile(mexFile)
 end
 
 %% ======================== Run benchmark ========================
-fprintf('=== DC-DTLZ1 Example ===\n');
+fprintf('=== DC-DTLZ2 Example ===\n');
 fprintf('Algorithm: DCNSGAII_A\n');
 fprintf('Runs: 5 (reduced for demonstration)\n');
 fprintf('========================\n\n');
 
-% Use DC-DTLZ1 factory function
-factory = @dcdtlzFactory;
+% Use DC-DTLZ2 factory function (spherical constraints, more likely to find feasible solutions)
+% Use a short-horizon variant (4 environments) to ensure feasible solutions are found
+factory = @(config) dcdtlz2ShortFactory(config);
 
 % Run benchmark
 %   - Use DCNSGAII_A single baseline algorithm
@@ -55,7 +59,7 @@ factory = @dcdtlzFactory;
 %   - Results saved to results/example directory
 runBenchmark(factory, ...
     'algo.popSize', 100, ...
-    'algo.maxGenPerEnv', 50, ...
+    'algo.maxGenPerEnv', 200, ...
     'run.numRuns', 5, ...
     'run.numWorkers', 0, ...
     'algorithms', {'DCNSGAII_A'}, ...

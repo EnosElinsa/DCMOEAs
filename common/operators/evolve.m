@@ -1,11 +1,13 @@
-function [pop, state] = evolve(config, state, problem, pop)
+function [pop, state] = evolve(config, state, problem, pop, operatorParams)
 % evolve - NSGA-II SBX+PM evolution step (shared).
 % Uses calFitness + tournamentSelection from common/operators/.
 % Inputs:
-%   config  - static configuration struct
-%   state   - mutable runtime state
-%   problem - DynamicProblem instance
-%   pop     - Solution object array [1 x popSize]
+%   config         - static configuration struct
+%   state          - mutable runtime state
+%   problem        - DynamicProblem instance
+%   pop            - Solution object array [1 x popSize]
+%   operatorParams - struct with fields proC, disC, proM, disM
+%                    (variation operator parameters, owned by caller)
 % Outputs:
 %   pop   - updated Solution object array [1 x popSize]
 %   state - updated state
@@ -28,8 +30,8 @@ function [pop, state] = evolve(config, state, problem, pop)
     fitnessPop = calFitness(parentObjs, parentCons);
     matingPool = tournamentSelection(2, popsize, fitnessPop);
 
-    %% SBX + Polynomial Mutation (consume shared operatorParams)
-    op = config.algo.operatorParams;
+    %% SBX + Polynomial Mutation
+    op = operatorParams;
     parent1 = parentDecs(matingPool(1:popsize/2), :);
     parent2 = parentDecs(matingPool(popsize/2+1:end), :);
     [~, D] = size(parent1);

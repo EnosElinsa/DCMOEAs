@@ -23,7 +23,7 @@ function hvResults = analyzeResults(resultsDir, algorithms)
         return;
     end
     hvResults = computeAllHV(resultsDir, algorithms, refPoint);
-    printSummary(algorithms, hvResults);
+    printSummary(hvResults);
 end
 
 
@@ -176,7 +176,7 @@ function hvResults = computeAllHV(resultsDir, algorithms, refPoint)
 end
 
 
-function printSummary(~, hvResults)
+function printSummary(hvResults)
 % printSummary - Print HV summary table.
 %
 % Displays a formatted table with columns: Algorithm, Mean HV, Std HV.

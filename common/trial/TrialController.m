@@ -7,8 +7,11 @@ classdef TrialController < handle
 % This is a problem-agnostic controller that works with any DynamicProblem
 % subclass through the standard interface.
 
-    properties
+    properties (Access = private)
         logger       % TrialLogger
+    end
+
+    properties
         weights      % [1 x M] objective weights
         problem      % DynamicProblem reference
     end
@@ -29,34 +32,28 @@ classdef TrialController < handle
             obj.logger = TrialLogger(problem);
         end
 
-        function [bestSol, noFeasible, isDone] = stepEnvironment(obj, problem, pop)
+        function done = stepEnvironment(obj, problem, pop)
         % stepEnvironment - End-of-cycle transition.
         %   1. Filter feasible solutions (cv == 0)
-        %   2. Select best via weighted sum of normalized objectives
-        %   3. Execute decision (updateAfterExecution)
-        %   4. Record snapshot via TrialLogger
-        %   5. Check termination (isDone)
-        %   6. Advance environment (updateEnvironment)
+        %   2. If none: mark no-feasible, return done = true
+        %   3. Else: select best, execute decision, record snapshot
+        %   4. Check problem.isDone() — if true, return done = true
+        %   5. Else: updateEnvironment(), return done = problem.isDone()
         %
-        %   Outputs:
-        %     bestSol    - selected best feasible Solution (or [])
-        %     noFeasible - true if no feasible solution exists
-        %     isDone     - true if trial should terminate
-            isDone = false;
+        %   Output:
+        %     done - true if trial should terminate (no feasible or problem done)
 
-            % Select best feasible solution
+            % Filter feasible solutions
             feasibleMask = ([pop.cv] == 0);
             feasiblePop = pop(feasibleMask);
 
             if isempty(feasiblePop)
                 obj.logger.markNoFeasible();
-                noFeasible = true;
-                isDone = true;
-                bestSol = [];
+                done = true;
                 return;
             end
-            noFeasible = false;
 
+            % Select best feasible solution
             bestSol = problem.selectBest(feasiblePop, obj.weights);
 
             % Execute decision
@@ -67,16 +64,13 @@ classdef TrialController < handle
 
             % Check termination
             if problem.isDone()
-                isDone = true;
+                done = true;
                 return;
             end
 
             % Advance environment
             problem.updateEnvironment();
-
-            if problem.isDone()
-                isDone = true;
-            end
+            done = problem.isDone();
         end
 
         function finalSelect(obj, pop)
