@@ -69,7 +69,8 @@ classdef MedcmoaDriver < TrialDriver
 
             % Coordinate-search step sizes: 10% of each variable's range,
             % floored at 1e-6 to avoid degenerate zero-width dimensions.
-            ranges = this.config.domain(:, 2) - this.config.domain(:, 1);
+            domain = this.problem.getDomain();
+            ranges = domain(:, 2) - domain(:, 1);
             this.delta = max(ranges / 10, 1e-6);
             this.responseFESRate = 0.7;
 
@@ -93,7 +94,7 @@ classdef MedcmoaDriver < TrialDriver
                 popParent = selectMatingPool(this.pop);
                 parentDecs = this.pop.decs();
                 parentDecs = parentDecs(popParent', :);
-                offspringDecs = sbxPm(parentDecs, this.config.domain, this.operatorParams, 'full');
+                offspringDecs = sbxPm(parentDecs, this.problem.getDomain(), this.operatorParams, 'full');
 
                 offspring = Solution.fromDecs(offspringDecs);
                 [offspring, this.state] = evaluatePopulation(this.problem, offspring, this.state);

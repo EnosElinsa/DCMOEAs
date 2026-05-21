@@ -13,7 +13,7 @@ function [newPop, state] = respondToChange(config, state, problem, pop, number)
 %   newPop  - Solution object array after change response
 
     N = config.algo.popSize;
-    domain = config.domain;  % [D x 2]
+    domain = problem.getDomain();  % [D x 2]
     lowerBound = repmat(domain(:, 1)', N, 1);  % [N x D]
     upperBound = repmat(domain(:, 2)', N, 1);  % [N x D]
 

@@ -1,4 +1,4 @@
-function [newPop1, newPop2, flag, state] = tdcResponse(config, state, problem, pop1, pop2, prevPop1)
+function [newPop1, newPop2, flag, state] = tdcResponse(config, state, problem, pop1, pop2, prevPop1) %#ok<INUSL>
 % tdcResponse - CRDCMO change-response (TDC) strategy.
 % Re-evaluates the current pop1 under the new
 % environment and branches on the magnitude of the per-objective mean shift:
@@ -21,7 +21,7 @@ function [newPop1, newPop2, flag, state] = tdcResponse(config, state, problem, p
 %       - Sets Flag = false.
 %
 % Inputs:
-%   config   - configuration struct (uses .domain)
+%   config   - configuration struct (unused but kept for signature parity)
 %   state    - mutable runtime state
 %   problem  - DynamicProblem instance
 %   pop1     - current Solution array under the OLD environment (stale objs)
@@ -37,7 +37,7 @@ function [newPop1, newPop2, flag, state] = tdcResponse(config, state, problem, p
 
     N = numel(pop1);
     Nhalf = floor(N / 2);
-    domain = config.domain;
+    domain = problem.getDomain();
 
     %% Re-evaluate pop1 decisions under the new environment
     [pop1Reev, state] = decsToEvaluatedPop(pop1.decs(), problem, state);

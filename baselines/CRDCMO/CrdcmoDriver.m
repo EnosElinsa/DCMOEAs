@@ -16,7 +16,6 @@ classdef CrdcmoDriver < TrialDriver
         flag            % Boolean: true after constraint-only change
         prevPop1        % Previous env's pop1 for centroid shift in tdcResponse
         operatorParams  % SBX/PM operator parameters struct
-        domain          % Decision variable bounds [2×D]
     end
 
     methods
@@ -35,31 +34,31 @@ classdef CrdcmoDriver < TrialDriver
             this.prevPop1 = Solution.empty();
             % CRDCMO operator params (Tian et al. 2021)
             this.operatorParams = struct('proC',1,'disC',20,'proM',1,'disM',20);
-            this.domain = this.config.domain;
         end
 
         function evolveStep(this)
             N = this.config.algo.popSize;
             Nhalf = N / 2;
             op = this.operatorParams;
+            domain = this.problem.getDomain();
 
             %% --- Offspring 1: tournament on pop1 SPEA2 fitness, GA op ---
             matingPool1 = tournamentSelection(2, 2 * Nhalf, this.fitness1);
             parentDecs1 = this.pop1(matingPool1).decs();
-            offspringDecs1 = sbxPm(parentDecs1, this.domain, op, 'full');
+            offspringDecs1 = sbxPm(parentDecs1, domain, op, 'full');
             [offspring1, this.state] = decsToEvaluatedPop(offspringDecs1, this.problem, this.state);
 
             %% --- Offspring 2: switch on flag ---
             if this.flag
                 mating2 = matingPoolCR(this.pop1, this.pop2, Nhalf);
                 parentDecs2 = mating2.decs();
-                offspringDecs2 = sbxPm(parentDecs2, this.domain, op, 'full');
+                offspringDecs2 = sbxPm(parentDecs2, domain, op, 'full');
                 [offspring2, this.state] = decsToEvaluatedPop(offspringDecs2, this.problem, this.state);
                 this.pop2 = updateArchive([this.pop2, this.pop1, offspring1, offspring2], Nhalf);
             else
                 matingPool2 = tournamentSelection(2, Nhalf, this.fitness2);
                 parentDecs2 = this.pop2(matingPool2).decs();
-                offspringDecs2 = sbxPm(parentDecs2, this.domain, op, 'full');
+                offspringDecs2 = sbxPm(parentDecs2, domain, op, 'full');
                 [offspring2, this.state] = decsToEvaluatedPop(offspringDecs2, this.problem, this.state);
                 [this.pop2, this.fitness2] = spea2Selection([this.pop2, offspring1, offspring2], Nhalf, true);
             end

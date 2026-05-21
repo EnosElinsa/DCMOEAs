@@ -1,4 +1,4 @@
-﻿function [pop, state] = respondToChangeDCB(config, state, problem, pop)
+﻿function [pop, state] = respondToChangeDCB(config, state, problem, pop) %#ok<INUSL>
 % respondToChangeDCB - DNSGA-II-B change response (polynomial mutation).
 % Mutates a zeta fraction of the population using the shared
 % operatorParams (per-bit rate proM/D) and re-evaluates.
@@ -7,7 +7,7 @@
     N = floor(popsize * zeta / 2) * 2;
     selected = randperm(popsize, N);
 
-    domain = config.domain;
+    domain = problem.getDomain();
     D = size(domain, 1);
     selectedDecs = pop(selected).decs();
 

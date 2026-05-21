@@ -5,7 +5,8 @@ function offspring = dePm(p1, p2, p3, domain, CR, F, proM, disM)
 %
 % Inputs:
 %   p1, p2, p3 - [N x D] parent matrices
-%   domain     - [2 x D] or [D x 2] bounds (passed through to polynomialMutation)
+%   domain     - [D x 2] bounds (passed through to polynomialMutation;
+%                 see ADR-0004 for canonical shape)
 %   CR         - per-bit crossover probability (scalar)
 %   F          - differential weight (scalar)
 %   proM       - base mutation probability (divided by D internally)

@@ -17,7 +17,6 @@ classdef TdceaDriver < TrialDriver
         fitness2        % SPEA2 fitness values for pop2 [1×N]
         number          % Environment index counter (for TDC centroid shift)
         operatorParams  % DE/PM operator parameters struct
-        domain          % Decision variable bounds [D×2]
     end
 
     methods
@@ -38,8 +37,6 @@ classdef TdceaDriver < TrialDriver
 
             % DE/PM parameters (TDCEA paper: CR=1, F=0.5, proM=1, disM=20)
             this.operatorParams = struct('proC',1,'disC',20,'proM',1,'disM',20);
-
-            this.domain = this.config.domain;
         end
 
         function evolveStep(this)
@@ -51,6 +48,7 @@ classdef TdceaDriver < TrialDriver
             N = this.config.algo.popSize;
             halfN = floor(N / 2);
             op = this.operatorParams;
+            domain = this.problem.getDomain();
 
             %% Tournament selection based on SPEA2 fitness
             matingPool1 = tournamentSelection(2, N, this.fitness1);
@@ -61,7 +59,7 @@ classdef TdceaDriver < TrialDriver
                 this.pop1(randperm(N, halfN)).decs(), ...
                 this.pop1(matingPool1(1:halfN)).decs(), ...
                 this.pop1(matingPool1(halfN + 1 : 2 * halfN)).decs(), ...
-                this.domain', 1, 0.5, op.proM, op.disM);
+                domain, 1, 0.5, op.proM, op.disM);
             [offspring1, this.state] = decsToEvaluatedPop(offDec1, this.problem, this.state);
 
             %% DE-based offspring generation for pop2
@@ -69,7 +67,7 @@ classdef TdceaDriver < TrialDriver
                 this.pop2(randperm(N, halfN)).decs(), ...
                 this.pop2(matingPool2(1:halfN)).decs(), ...
                 this.pop2(matingPool2(halfN + 1 : 2 * halfN)).decs(), ...
-                this.domain', 1, 0.5, op.proM, op.disM);
+                domain, 1, 0.5, op.proM, op.disM);
             [offspring2, this.state] = decsToEvaluatedPop(offDec2, this.problem, this.state);
 
             %% SPEA2 environmental selection

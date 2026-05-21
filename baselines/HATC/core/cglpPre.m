@@ -1,4 +1,4 @@
-function [pop, popLCM, popDCM, typeFlag] = cglpPre(hisPareto, popSize, typeFlag, boundary)
+function [pop, popLCM, popDCM, typeFlag] = cglpPre(hisPareto, popSize, typeFlag, domain)
 % cglpPre - Correlation-Guided Learning Prediction (decision space).
 % Divides population into high/mid/low correlation groups via gray
 % relational analysis, then applies group-specific prediction operators.
@@ -6,7 +6,8 @@ function [pop, popLCM, popDCM, typeFlag] = cglpPre(hisPareto, popSize, typeFlag,
 %   hisPareto  - cell array of historical Pareto sets
 %   popSize    - population size
 %   typeFlag   - operator type flag (passed to dlcm)
-%   boundary   - struct with .lower/.upper fields for decision bounds
+%   domain     - [D×2] decision variable bounds (column 1 = lower,
+%                column 2 = upper). See ADR-0004.
 % Outputs:
 %   pop       - [popSize x D] predicted decision variables
 %   popLCM    - LCM-predicted sub-population (from dlcm)
@@ -25,8 +26,10 @@ function [pop, popLCM, popDCM, typeFlag] = cglpPre(hisPareto, popSize, typeFlag,
     hisPop{timeIdx - 2}.F = hisPareto{timeIdx - 2}.objs()';
     numPoints = size(hisPop{timeIdx - 1}.X, 2);
 
-    lowerBound = repmat(boundary.lower, numPoints, 1);
-    upperBound = repmat(boundary.upper, numPoints, 1);
+    lowerRow = domain(:, 1)';   % [1×D]
+    upperRow = domain(:, 2)';   % [1×D]
+    lowerBound = repmat(lowerRow, numPoints, 1);
+    upperBound = repmat(upperRow, numPoints, 1);
     upperBound = upperBound';
     lowerBound = lowerBound';
     randomFallback = lowerBound' + rand(size(upperBound')) .* (upperBound - lowerBound)';

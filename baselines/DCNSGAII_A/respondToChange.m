@@ -1,9 +1,9 @@
-function [pop, state] = respondToChange(config, state, problem, pop, replacementRate)
+function [pop, state] = respondToChange(config, state, problem, pop, replacementRate) %#ok<INUSL>
 % respondToChange - DNSGA-II-A change response.
 % Replaces a fraction of population with random individuals,
 % then re-evaluates entire population.
 % Inputs:
-%   config          - static configuration struct
+%   config          - static configuration struct (unused but kept for signature parity)
 %   state           - mutable runtime state
 %   problem         - DynamicProblem instance
 %   pop             - Solution object array [1 x popSize]
@@ -18,7 +18,7 @@ function [pop, state] = respondToChange(config, state, problem, pop, replacement
     selected = randperm(popsize, N);
 
     %% DNSGA-II-A: Replace selected individuals with random points
-    domain = config.domain;
+    domain = problem.getDomain();
     D = size(domain, 1);
     for i = 1:N
         newDec = domain(:, 1) + (domain(:, 2) - domain(:, 1)) .* rand(D, 1);

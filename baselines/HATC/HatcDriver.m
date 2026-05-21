@@ -25,7 +25,6 @@ classdef HatcDriver < TrialDriver
         preobj          % Cell array of CGLP-predicted objectives
         matchedHistPop  % Matched historical population for diveHisSelection
         operatorParams  % SBX/PM operator parameters struct
-        boundary        % Struct with .lower/.upper fields
         ft              % Generations per environment (maxGenPerEnv)
     end
 
@@ -80,9 +79,6 @@ classdef HatcDriver < TrialDriver
             this.uPop = this.initialPop;
             this.ft = this.config.algo.maxGenPerEnv;
 
-            this.boundary.lower = this.problem.lower;
-            this.boundary.upper = this.problem.upper;
-
             this.operatorParams = struct('proC',1,'disC',20,'proM',1,'disM',20);
 
             this.memoryArchive = {};
@@ -100,14 +96,14 @@ classdef HatcDriver < TrialDriver
 
             popSize = this.config.algo.popSize;
             op = this.operatorParams;
-            bnd = this.boundary;
+            domain = this.problem.getDomain();   % [D×2]
 
             if this.state.gen < this.ft
                 % --- Branch 1: Single-pop evolution (Environment 1) ---
                 [~, frontNo, crowdDis] = nsgaiiSelection(this.pop, popSize);
                 matingPool = tournamentSelection(2, popSize*2, frontNo, -crowdDis);
                 parents = this.pop(matingPool).decs();
-                offDec = sbxPm(parents, [bnd.lower', bnd.upper'], op, 'firstHalf');
+                offDec = sbxPm(parents, domain, op, 'firstHalf');
                 [offspring, this.state] = decsToEvaluatedPop(offDec, this.problem, this.state);
                 [this.pop, ~, ~] = nsgaiiSelection([this.pop, offspring], popSize);
                 [this.uPop, ~, ~] = nsgaiiSelection([this.uPop, offspring], popSize, true);
@@ -119,14 +115,14 @@ classdef HatcDriver < TrialDriver
                 [~, frontNo1, crowdDis1] = nsgaiiSelection(this.pop1, halfSize, true);
                 matingPool1 = tournamentSelection(2, popSize, frontNo1, -crowdDis1);
                 parents1 = this.pop1(matingPool1).decs();
-                offDec1 = sbxPm(parents1, [bnd.lower', bnd.upper'], op, 'firstHalf');
+                offDec1 = sbxPm(parents1, domain, op, 'firstHalf');
                 [offspring1, this.state] = decsToEvaluatedPop(offDec1, this.problem, this.state);
 
                 % Sub-population 2: constrained selection, parents from pop1
                 [~, frontNo2, crowdDis2] = nsgaiiSelection(this.pop2, halfSize);
                 matingPool2 = tournamentSelection(2, popSize, frontNo2, -crowdDis2);
                 parents2 = this.pop1(matingPool2).decs();
-                offDec2 = sbxPm(parents2, [bnd.lower', bnd.upper'], op, 'firstHalf');
+                offDec2 = sbxPm(parents2, domain, op, 'firstHalf');
                 [offspring2, this.state] = decsToEvaluatedPop(offDec2, this.problem, this.state);
 
                 % Selection: pop1 uses diveHisSelection, pop2 uses NSGA-II
@@ -146,15 +142,17 @@ classdef HatcDriver < TrialDriver
         %   regeneration.
 
             popSize = this.config.algo.popSize;
-            bnd = this.boundary;
             op = this.operatorParams;
+            domain = this.problem.getDomain();   % [D×2]
+            lowerRow = domain(:, 1)';            % [1×D]
+            upperRow = domain(:, 2)';            % [1×D]
 
             % --- Change Detection & Memory Retrieval ---
             envIdx = length(this.memoryArchive) + 1;
 
             if envIdx >= 3
                 % Predict using CGLP
-                this.prepop{envIdx} = cglpPre(this.memoryArchive, popSize, 1, bnd);
+                this.prepop{envIdx} = cglpPre(this.memoryArchive, popSize, 1, domain);
                 this.preobj{envIdx} = cglpPreObj(this.problem, this.memoryArchive, popSize, 1);
             end
 
@@ -179,16 +177,16 @@ classdef HatcDriver < TrialDriver
             if envIdx >= 3
                 dec = this.prepop{envIdx};
             else
-                randDec = unifrnd(repmat(bnd.lower, round(0.2*popSize), 1), repmat(bnd.upper, round(0.2*popSize), 1));
+                randDec = unifrnd(repmat(lowerRow, round(0.2*popSize), 1), repmat(upperRow, round(0.2*popSize), 1));
                 lastCP = this.memoryArchive{end}.decs();
                 long = randperm(popSize);
                 parents = lastCP(long(round(0.2*popSize)+1:end), :);
-                offDec1 = sbxPm(parents, [bnd.lower', bnd.upper'], op, 'full');
+                offDec1 = sbxPm(parents, domain, op, 'full');
                 dec = [randDec; offDec1];
             end
 
             if size(unique(dec, 'rows'), 1) < popSize
-                addDec = unifrnd(repmat(bnd.lower, popSize, 1), repmat(bnd.upper, popSize, 1));
+                addDec = unifrnd(repmat(lowerRow, popSize, 1), repmat(upperRow, popSize, 1));
                 newDec = unique([dec; addDec], 'rows', 'stable');
                 dec = newDec(1:popSize, :);
             end

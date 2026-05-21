@@ -5,7 +5,7 @@ function [pop, FT, state, responseMaxFES] = respondToChange(pop, config, state, 
 % (5) velocity-based adjustment, (6) re-evaluate, (7) final tribe selection.
 % Inputs:
 % pop - Solution object array
-% config - configuration struct (with .eachGenMaxFES, .responseFESRate, .popSize, .domain, .delta)
+% config - configuration struct (with .eachGenMaxFES, .responseFESRate, .popSize, .delta)
 % state - mutable runtime state
 % problem - DynamicProblem instance
 % currentGenFES - remaining FES for current environment
@@ -16,7 +16,7 @@ function [pop, FT, state, responseMaxFES] = respondToChange(pop, config, state, 
 % responseMaxFES - remaining FES budget after response
 
     popsize = config.algo.popSize;
-    domain = config.domain;
+    domain = problem.getDomain();
     delta = config.delta;
     D = size(domain, 1);
 

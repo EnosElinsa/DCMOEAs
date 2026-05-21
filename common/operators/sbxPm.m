@@ -8,7 +8,8 @@ function offspring = sbxPm(parents, domain, op, mode)
 %   Inputs:
 %       parents - [M x D] decision variable matrix. Rows 1:floor(M/2) are
 %                 paired with rows floor(M/2)+1:2*floor(M/2).
-%       domain  - [D x 2] or [2 x D] variable bounds [lower, upper].
+%       domain  - [D x 2] variable bounds. Column 1 = lower, column 2 = upper.
+%                 (See ADR-0004 for the canonical-shape rule.)
 %       op      - operatorParams struct with fields proC, disC, proM, disM.
 %       mode    - (optional) 'full' (default) returns both offspring halves
 %                 [2*half x D]; 'firstHalf' returns only the first half

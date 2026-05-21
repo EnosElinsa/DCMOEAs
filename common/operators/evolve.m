@@ -19,7 +19,7 @@ function [pop, state] = evolve(config, state, problem, pop, operatorParams)
         error('evolve:oddPopSize', 'Population size must be even for mating pool split.');
     end
 
-    domain = config.domain;
+    domain = problem.getDomain();
 
     %% Extract matrices from Solution array (row-per-individual)
     parentDecs = pop.decs();   % [N x D]

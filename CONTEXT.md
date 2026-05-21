@@ -28,6 +28,7 @@ This file names the load-bearing concepts in the codebase. Use these terms when 
 - **Selection bundles** — `nsgaiiSelection`, `spea2Selection`. Compose `ndSort` + `crowdingDistance` (or `calFitness`) + truncation.
 - **Evolution step bundle** — `evolve.m`: a complete NSGA-II generation (mating selection + SBX-PM + environmental selection). Used by DCNSGAII_A and DCNSGAII_B.
 - **operatorParams** — A struct `{proC, disC, proM, disM}` of SBX/PM hyperparameters. **Owned per baseline**, not in config (see [ADR-0002](docs/adr/0002-operator-params-owned-per-baseline.md)).
+- **Decision-space bounds (`domain`)** — A `[D×2]` matrix (column 1 = lower, column 2 = upper). The single source of truth is `problem.getDomain()` — bounds are not cached on `config` or driver properties (see [ADR-0004](docs/adr/0004-domain-single-source-of-truth.md)). Bounds are static across a trial: subclasses set `lower`/`upper` in `initialize()` and never mutate them in `updateEnvironment()`. All operators take `domain` as `[D×2]` data, never `[2×D]`, never problem handles.
 
 ## Architectural seams
 

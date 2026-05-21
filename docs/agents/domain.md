@@ -17,7 +17,8 @@ If any of these files don't exist, **proceed silently**. Don't flag their absenc
 ├── docs/adr/
 │   ├── 0001-selectbest-stays-on-problem.md
 │   ├── 0002-operator-params-owned-per-baseline.md
-│   └── 0003-replacement-rate-owned-by-dcnsgaii-a.md
+│   ├── 0003-replacement-rate-owned-by-dcnsgaii-a.md
+│   └── 0004-domain-single-source-of-truth.md
 └── ...
 ```
 
