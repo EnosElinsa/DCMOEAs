@@ -1,7 +1,6 @@
 function hvResults = analyzeResults(resultsDir, algorithms)
 % analyzeResults - Post-processing: compute reference point, HV, print summary.
 %
-% Standalone function extracted from runBenchmark.m for testability and reuse.
 % Computes a global reference point across all algorithm results, calculates
 % per-trial hypervolume values, and prints a formatted summary table.
 %

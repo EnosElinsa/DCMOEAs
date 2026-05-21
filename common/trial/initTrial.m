@@ -1,5 +1,5 @@
 function [problem, config, pop, state, controller, maxgen] = initTrial(config, problemFactory)
-% initTrial - Complete trial initialization (deepened).
+% initTrial - Complete trial initialization.
 %
 % Sets up RNG, creates problem instance via factory, validates return type,
 % generates random initial population, evaluates it, and creates TrialController.
@@ -20,7 +20,6 @@ function [problem, config, pop, state, controller, maxgen] = initTrial(config, p
 %   controller - TrialController instance
 %   maxgen     - total generation budget
 
-    % --- Inlined from createRunState ---
     state.gen = 0;
     state.fes = 0;
 
@@ -51,7 +50,7 @@ function [problem, config, pop, state, controller, maxgen] = initTrial(config, p
             'Population size must be at least 2.');
     end
 
-    % --- Inlined from generateRandomPoint + initializePopulation ---
+    % Generate and evaluate the initial population
     N = config.algo.popSize;
     D = problem.getDecisionDims();
     domain = problem.getDomain();   % [D×2]
@@ -59,10 +58,7 @@ function [problem, config, pop, state, controller, maxgen] = initTrial(config, p
     upper = domain(:,2)';           % [1×D]
     decs = rand(N, D) .* (upper - lower) + lower;  % [N×D]
 
-    % --- Use static factory instead of manual loop ---
     pop = Solution.fromDecs(decs);
-
-    % --- Evaluate (simplified 3-arg signature) ---
     [pop, state] = evaluatePopulation(problem, pop, state);
 
     state.gen = 0;

@@ -1,8 +1,8 @@
 function offspring = deCrossover(p1, p2, p3, CR, F)
 % deCrossover - DE/rand/1 + binomial crossover primitive.
 % Computes p1 + F*(p2-p3) on dimensions selected by binomial CR.
-% This is the pure crossover step extracted from operatorDE — no polynomial
-% mutation and no boundary clipping are applied.
+% Pure crossover step: no polynomial mutation and no boundary clipping
+% are applied here — those are the caller's concern.
 %
 % Inputs:
 %   p1, p2, p3 - [N x D] parent matrices
