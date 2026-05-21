@@ -39,7 +39,7 @@ end
 
 function [frontNo, maxFNo] = ensSS(popObj, nSort)
     [popObj, ~, loc] = unique(popObj, 'rows');
-    tbl     = hist(loc, 1:max(loc));
+    tbl     = accumarray(loc, 1)';
     [N,M]   = size(popObj);
     frontNo = inf(1,N);
     maxFNo  = 0;
@@ -71,7 +71,7 @@ end
 
 function [frontNo, maxFNo] = tENS(popObj, nSort)
     [popObj, ~, loc] = unique(popObj, 'rows');
-    tbl       = hist(loc, 1:max(loc));
+    tbl       = accumarray(loc, 1)';
     [N,M]     = size(popObj);
     frontNo   = inf(1,N);
     maxFNo    = 0;

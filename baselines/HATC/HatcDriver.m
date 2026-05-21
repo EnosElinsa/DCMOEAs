@@ -153,7 +153,7 @@ classdef HatcDriver < TrialDriver
             if envIdx >= 3
                 % Predict using CGLP
                 this.prepop{envIdx} = cglpPre(this.memoryArchive, popSize, 1, domain);
-                this.preobj{envIdx} = cglpPreObj(this.problem, this.memoryArchive, popSize, 1);
+                this.preobj{envIdx} = cglpPreObj(this.memoryArchive, popSize, 1);
             end
 
             if envIdx == 3

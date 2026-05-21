@@ -1,4 +1,4 @@
-function [pop, popLCM, popDCM, typeFlag] = dlcmObj(kneeArray1, kneeArray2, popLCM, popDCM, typeFlag)
+function [pop, popLCM, popDCM, typeFlag] = dlcmObj(kneeArray1, kneeArray2, typeFlag)
 % dlcmObj - Direction Learning and Cosine Mapping (objective space).
 %   Generalized M-dimensional version of DLCM operating in objective space.
 %   Converts direction vectors to hyperspherical coordinates, blends with
@@ -7,8 +7,6 @@ function [pop, popLCM, popDCM, typeFlag] = dlcmObj(kneeArray1, kneeArray2, popLC
 % Inputs:
 %   kneeArray1 - [M x N] objective values at time K-1
 %   kneeArray2 - [M x N] objective values at time K-2
-%   popLCM     - accumulated LCM population (replaced)
-%   popDCM     - accumulated DCM population (replaced)
 %   typeFlag   - operator type flag
 %
 % Outputs:
@@ -30,8 +28,8 @@ function [pop, popLCM, popDCM, typeFlag] = dlcmObj(kneeArray1, kneeArray2, popLC
     directionVec = kneeArray1 - kneeArray2 + epsilon;
 
     %% Compute group centroid shift
-    centroidPrev     = mean(kneeArray1', 1);
-    centroidPrevPrev = mean(kneeArray2', 1);
+    centroidPrev     = mean(kneeArray1, 2)';
+    centroidPrevPrev = mean(kneeArray2, 2)';
     centroidDelta    = centroidPrev' - centroidPrevPrev' + epsilon;
 
     %% Compute individual scaling factors
@@ -68,56 +66,34 @@ function [pop, popLCM, popDCM, typeFlag] = dlcmObj(kneeArray1, kneeArray2, popLC
     lastIdx = length(centroidAngles);
     centroidAngles(lastIdx) = atan(centroidDelta(lastIdx + 1) / (centroidDelta(lastIdx)));
 
-    %% Reconstruct and check sign consistency
+    %% Reconstruct individual Cartesian vectors from hyperspherical coordinates
+    %% (centroid reconstruction omitted: unlike dlcm.m, this objective-space
+    %% variant does not use centroidError for sign-consistency adjustment.)
     directionVecT = directionVec';
     reconstructedPop = zeros(numDims, numIndividuals);
     cartesian = zeros(1, numDims);
-    centroidCartesian = zeros(1, numDims);
 
-    for num = 1:numIndividuals + 1
-        if num <= numIndividuals
-            angles = polarAngles(:, num);
-            vecMagnitude = norm(directionVecT(num, :));
-            for i = 1:numDims
-                if i == 1
-                    cartesian(i) = vecMagnitude * cos(angles(i));
-                elseif i < numDims
-                    sinProduct = 1;
-                    for j = 1:i - 1
-                        sinProduct = sinProduct * sin(angles(j));
-                    end
-                    cartesian(i) = vecMagnitude * sinProduct * cos(angles(i));
-                else
-                    sinProduct = 1;
-                    for j = 1:i - 1
-                        sinProduct = sinProduct * sin(angles(j));
-                    end
-                    cartesian(i) = vecMagnitude * sinProduct;
+    for num = 1:numIndividuals
+        angles = polarAngles(:, num);
+        vecMagnitude = norm(directionVecT(num, :));
+        for i = 1:numDims
+            if i == 1
+                cartesian(i) = vecMagnitude * cos(angles(i));
+            elseif i < numDims
+                sinProduct = 1;
+                for j = 1:i - 1
+                    sinProduct = sinProduct * sin(angles(j));
                 end
-            end
-            reconstructedPop(:, num) = cartesian;
-        else
-            angles = centroidAngles';
-            vecMagnitude = norm(centroidDelta);
-            for i = 1:numDims
-                if i == 1
-                    cartesian(i) = vecMagnitude * cos(angles(i));
-                elseif i < numDims
-                    sinProduct = 1;
-                    for j = 1:i - 1
-                        sinProduct = sinProduct * sin(angles(j));
-                    end
-                    cartesian(i) = vecMagnitude * sinProduct * cos(angles(i));
-                else
-                    sinProduct = 1;
-                    for j = 1:i - 1
-                        sinProduct = sinProduct * sin(angles(j));
-                    end
-                    cartesian(i) = vecMagnitude * sinProduct;
+                cartesian(i) = vecMagnitude * sinProduct * cos(angles(i));
+            else
+                sinProduct = 1;
+                for j = 1:i - 1
+                    sinProduct = sinProduct * sin(angles(j));
                 end
+                cartesian(i) = vecMagnitude * sinProduct;
             end
-            centroidCartesian = cartesian; %#ok<NASGU>
         end
+        reconstructedPop(:, num) = cartesian;
     end
 
     %% Adjust angles for sign consistency

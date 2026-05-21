@@ -22,8 +22,8 @@ function [pop, popLCM, popDCM, typeFlag] = dlcm(kneeArray1, kneeArray2, popLCM, 
     numIndividuals = size(kneeArray1, 2);
 
     %% Compute group centroid shift
-    centroidPrev = mean(kneeArray1', 1);
-    centroidPrevPrev = mean(kneeArray2', 1);
+    centroidPrev = mean(kneeArray1, 2)';
+    centroidPrevPrev = mean(kneeArray2, 2)';
     centroidDelta = centroidPrev' - centroidPrevPrev' + epsilon;
 
     %% Compute individual scaling factors

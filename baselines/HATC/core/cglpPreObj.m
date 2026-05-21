@@ -1,4 +1,4 @@
-function [pop, popLCM, popDCM, typeFlag] = cglpPreObj(problem, hisPareto, popSize, typeFlag)
+function [pop, popLCM, popDCM, typeFlag] = cglpPreObj(hisPareto, popSize, typeFlag)
 % cglpPreObj - Correlation-Guided Learning Prediction (objective space).
 %   Divides population into high/mid/low correlation groups via gray
 %   relational analysis in objective space, then applies group-specific
@@ -6,7 +6,6 @@ function [pop, popLCM, popDCM, typeFlag] = cglpPreObj(problem, hisPareto, popSiz
 %   replacement (low).
 %
 % Inputs:
-%   problem    - DynamicProblem instance (reserved for future use)
 %   hisPareto  - cell array of historical Pareto-optimal Solution objects
 %   popSize    - population size
 %   typeFlag   - operator type flag
@@ -92,11 +91,9 @@ function [pop, popLCM, popDCM, typeFlag] = cglpPreObj(problem, hisPareto, popSiz
     predictedSolution(highGroupIdx, :) = hisPop{timeIdx - 1}.F(:, highGroupIdx)' + meanShift;
 
     %% Mid correlation group: DLCM prediction
-    popLCM = [];
-    popDCM = [];
     [predictedSolution(groupIndices{2}, :), popLCM, popDCM, typeFlag] = ...
         dlcmObj(hisPop{timeIdx - 1}.F(:, groupIndices{2}), ...
-                hisPop{timeIdx - 2}.F(:, groupIndices{2}), popLCM, popDCM, typeFlag);
+                hisPop{timeIdx - 2}.F(:, groupIndices{2}), typeFlag);
 
     %% Low correlation group: archive replacement
     lowGroupIdx = groupIndices{end};
