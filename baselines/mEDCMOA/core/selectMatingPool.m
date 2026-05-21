@@ -1,6 +1,5 @@
 function pPrime = selectMatingPool(pop)
 % selectMatingPool - Binary tournament on modified objectives for mEDCMOA.
-% Refactored from mEDCMOA/matingSelection.m.
 % Uses modified objectives (via modifyObjectives) for selection.
 % Inputs:
 % pop - Solution object array

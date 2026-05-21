@@ -1,6 +1,5 @@
 function flag = checkDominance(f1, cv1, f2, cv2)
 % checkDominance - Check dominance relation between two individuals.
-% Refactored from mEDCMOA/dominate.m (renamed only).
 % Inputs:
 % f1, f2 - objective vectors
 % cv1, cv2 - constraint violation values

@@ -1,6 +1,5 @@
 function addset = selectElites(pop, fitness, required)
 % selectElites - Select best solutions by fitness then crowding distance.
-% Refactored from mEDCMOA/selectBestSolutions.m.
 % Inputs:
 % pop - Solution object array
 % fitness - [1 x N] fitness values

@@ -1,6 +1,5 @@
 function objs = modifyObjectives(pop)
 % modifyObjectives - Compute modified objective values for mating selection.
-% Refactored from mEDCMOA/ModifyObjects.m.
 % Combines normalized objectives with constraint violation penalty.
 % Inputs:
 % pop - Solution object array

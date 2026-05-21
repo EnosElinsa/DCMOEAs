@@ -1,6 +1,5 @@
 function [FT, DIT, NIT, AS] = classifyTribes(population1, population2, AS)
 % classifyTribes - Classify merged population into FT/DIT/NIT tribes.
-% Refactored from mEDCMOA/tribeClassification.m.
 % FT = feasible tribe, DIT = dominated infeasible tribe,
 % NIT = nondominated infeasible tribe (dominating some AS member).
 % Inputs:

@@ -1,6 +1,5 @@
 function flag = findDominatedSet(obj, cv, AS)
 % findDominatedSet - Check if individual dominates any member of archive set.
-% Refactored from mEDCMOA/DominatedSet.m.
 % Inputs:
 % obj - objective vector of individual
 % cv - constraint violation of individual

@@ -1,6 +1,5 @@
 function fitness = computeFitness(pop, option)
 % computeFitness - Compute fitness values for a population.
-% Refactored from mEDCMOA/calculateFitness.m.
 % Eqa5 = number of individuals dominated BY this individual.
 % Eqa6 = number of individuals that DOMINATE this individual.
 % Inputs:

@@ -1,6 +1,5 @@
 function NP = selectPopulation(FT, DIT, NIT, N)
 % selectPopulation - Tribe-aware population selection for mEDCMOA.
-% Refactored from mEDCMOA/populationSelection.m.
 % Priority: FT first, then NIT, then DIT.
 % Inputs:
 % FT, DIT, NIT - Solution object arrays for each tribe

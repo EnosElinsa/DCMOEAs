@@ -1,6 +1,5 @@
 function AS = updateNondominatedSet(population, population2, popsize)
 % updateNondominatedSet - Archive maintenance for nondominated solutions.
-% Refactored from mEDCMOA/updateNondominatedSet.m.
 % Merges two populations, removes duplicates, keeps front-1 up to popsize.
 % Inputs:
 % population - Solution object array (primary)
