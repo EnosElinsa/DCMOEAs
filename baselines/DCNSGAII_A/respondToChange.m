@@ -1,18 +1,20 @@
-function [pop, state] = respondToChange(config, state, problem, pop)
+function [pop, state] = respondToChange(config, state, problem, pop, replacementRate)
 % respondToChange - DNSGA-II-A change response.
 % Replaces a fraction of population with random individuals,
 % then re-evaluates entire population.
 % Inputs:
-%   config  - static configuration struct
-%   state   - mutable runtime state
-%   problem - DynamicProblem instance
-%   pop     - Solution object array [1 x popSize]
+%   config          - static configuration struct
+%   state           - mutable runtime state
+%   problem         - DynamicProblem instance
+%   pop             - Solution object array [1 x popSize]
+%   replacementRate - fraction of population to replace (DNSGA-II-A
+%                     hyperparameter, owned by DcnsgaiiADriver)
 % Outputs:
 %   pop   - updated Solution object array after change response
 %   state - updated state
 
     popsize = numel(pop);
-    N = floor(popsize * config.algo.replacementRate / 2) * 2;
+    N = floor(popsize * replacementRate / 2) * 2;
     selected = randperm(popsize, N);
 
     %% DNSGA-II-A: Replace selected individuals with random points

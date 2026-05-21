@@ -6,6 +6,7 @@ classdef DcnsgaiiADriver < TrialDriver
     properties (Access = private)
         pop             % Current population [1×N Solution array]
         operatorParams  % SBX/PM operator parameters struct
+        replacementRate % Fraction of population replaced on environment change
     end
 
     methods
@@ -19,6 +20,8 @@ classdef DcnsgaiiADriver < TrialDriver
             this.pop = this.initialPop;
             % NSGA-II default SBX/PM parameters (Deb et al. 2002)
             this.operatorParams = struct('proC',1,'disC',20,'proM',1,'disM',20);
+            % DNSGA-II-A change-response replacement ratio (Deb et al. 2007)
+            this.replacementRate = 0.2;
         end
 
         function evolveStep(this)
@@ -28,7 +31,7 @@ classdef DcnsgaiiADriver < TrialDriver
 
         function respondToChange(this)
             [this.pop, this.state] = respondToChange(this.config, ...
-                this.state, this.problem, this.pop);
+                this.state, this.problem, this.pop, this.replacementRate);
         end
 
         function pop = currentPop(this)

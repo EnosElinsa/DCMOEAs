@@ -10,7 +10,6 @@ function config = createConfig(varargin)
     %% ======================== algo ========================
     config.algo.popSize         = 100;          % population size N
     config.algo.maxGenPerEnv    = 50;           % maximum generations per environment
-    config.algo.replacementRate = 0.2;          % replacement ratio on environment change
     config.algo.weights         = [];           % objective weights (empty = equal weights)
 
     %% ======================== run ========================

@@ -78,7 +78,6 @@ runBenchmark(@myProblemFactory, ...
 |-----------|---------|-------------|
 | `algo.popSize` | 100 | Population size |
 | `algo.maxGenPerEnv` | 50 | Generations per dynamic environment |
-| `algo.replacementRate` | 0.2 | Fraction replaced on environment change |
 | `run.numRuns` | 30 | Independent runs per algorithm |
 | `run.numWorkers` | 0 | Parallel workers (0 = serial) |
 | `run.seedBase` | 200 | Base seed for reproducibility |
