@@ -35,11 +35,10 @@ classdef MedcmoaDriver < TrialDriver
             [this.problem, this.config, this.initialPop, this.state, this.controller, this.maxgen] = ...
                 initTrial(this.config);
             this.initialize();
-            ft = this.config.algo.maxGenPerEnv;
 
             while this.state.gen <= this.maxgen
                 % --- Environment change check (at top of loop) ---
-                if mod(this.state.gen, ft) == 0 && this.state.gen ~= 0
+                if mod(this.state.gen, this.config.algo.maxGenPerEnv) == 0 && this.state.gen ~= 0
                     if this.controller.stepEnvironment(this.problem, this.currentPop())
                         break;
                     end

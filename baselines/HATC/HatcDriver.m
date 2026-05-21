@@ -10,8 +10,8 @@ classdef HatcDriver < TrialDriver
 % This requires overriding run() like mEDCMOA.
 %
 % Key behaviors:
-%   - Environment 1 (gen < ft): single-pop NSGA-II evolution
-%   - Environment 2+ (gen >= ft): dual-pop with diveHisSelection
+%   - Environment 1 (gen < maxGenPerEnv): single-pop NSGA-II evolution
+%   - Environment 2+ (gen >= maxGenPerEnv): dual-pop with diveHisSelection
 %   - Change response: stash pop into memoryArchive, then CGLP prediction
 %     or random+SBX fallback for population regeneration
 
@@ -25,7 +25,6 @@ classdef HatcDriver < TrialDriver
         preobj          % Cell array of CGLP-predicted objectives
         matchedHistPop  % Matched historical population for diveHisSelection
         operatorParams  % SBX/PM operator parameters struct
-        ft              % Generations per environment (maxGenPerEnv)
     end
 
     methods
@@ -45,11 +44,10 @@ classdef HatcDriver < TrialDriver
             [this.problem, this.config, this.initialPop, this.state, this.controller, this.maxgen] = ...
                 initTrial(this.config);
             this.initialize();
-            this.ft = this.config.algo.maxGenPerEnv;
 
             while this.state.gen <= this.maxgen
                 % --- Environment change check (at top of loop) ---
-                if mod(this.state.gen, this.ft) == 0 && this.state.gen ~= 0
+                if mod(this.state.gen, this.config.algo.maxGenPerEnv) == 0 && this.state.gen ~= 0
                     % Stash current pop into memory archive FIRST
                     this.memoryArchive{end+1} = this.pop;
 
@@ -77,7 +75,6 @@ classdef HatcDriver < TrialDriver
         function initialize(this)
             this.pop = this.initialPop;
             this.uPop = this.initialPop;
-            this.ft = this.config.algo.maxGenPerEnv;
 
             this.operatorParams = struct('proC',1,'disC',20,'proM',1,'disM',20);
 
@@ -92,13 +89,14 @@ classdef HatcDriver < TrialDriver
         function evolveStep(this)
         % evolveStep - One generation of HATC evolution.
         %   Two branches based on whether we are in the first environment
-        %   (gen < ft) or subsequent environments (gen >= ft).
+        %   (gen < maxGenPerEnv) or subsequent environments
+        %   (gen >= maxGenPerEnv).
 
             popSize = this.config.algo.popSize;
             op = this.operatorParams;
             domain = this.problem.getDomain();   % [D×2]
 
-            if this.state.gen < this.ft
+            if this.state.gen < this.config.algo.maxGenPerEnv
                 % --- Branch 1: Single-pop evolution (Environment 1) ---
                 [~, frontNo, crowdDis] = nsgaiiSelection(this.pop, popSize);
                 matingPool = tournamentSelection(2, popSize*2, frontNo, -crowdDis);
