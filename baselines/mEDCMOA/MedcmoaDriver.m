@@ -67,7 +67,10 @@ classdef MedcmoaDriver < TrialDriver
             % mEDCMOA paper operator parameters (proC=0.8, disC=5, proM=0.05, disM=40)
             this.operatorParams = struct('proC',0.8,'disC',5,'proM',0.05,'disM',40);
 
-            this.delta = getSearchDelta(this.config.domain);
+            % Coordinate-search step sizes: 10% of each variable's range,
+            % floored at 1e-6 to avoid degenerate zero-width dimensions.
+            ranges = this.config.domain(:, 2) - this.config.domain(:, 1);
+            this.delta = max(ranges / 10, 1e-6);
             this.responseFESRate = 0.7;
 
             this.config.algo.preEvolution = 80;

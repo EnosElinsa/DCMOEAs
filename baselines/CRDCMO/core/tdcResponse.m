@@ -23,7 +23,7 @@ function [newPop1, newPop2, flag, state] = tdcResponse(config, state, problem, p
 % Inputs:
 %   config   - configuration struct (uses .domain)
 %   state    - mutable runtime state
-%   problem  - UAVHAP handle
+%   problem  - DynamicProblem instance
 %   pop1     - current Solution array under the OLD environment (stale objs)
 %   pop2     - current archive Solution array (may be empty after init quirks)
 %   prevPop1 - Solution array of pop1 at the END of the PREVIOUS environment

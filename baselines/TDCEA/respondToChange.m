@@ -6,7 +6,7 @@ function [newPop, state] = respondToChange(config, state, problem, pop, number)
 %
 % Inputs:
 %   config  - configuration struct
-%   problem - UAVHAP problem instance
+%   problem - DynamicProblem instance
 %   pop     - Solution object array (current population, may be multi-row history)
 %   number  - current environment index (>= 2 means history available)
 % Outputs:

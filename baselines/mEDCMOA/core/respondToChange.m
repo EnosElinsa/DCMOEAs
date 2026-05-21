@@ -7,7 +7,7 @@ function [pop, FT, state, responseMaxFES] = respondToChange(pop, config, state, 
 % pop - Solution object array
 % config - configuration struct (with .eachGenMaxFES, .responseFESRate, .popSize, .domain, .delta)
 % state - mutable runtime state
-% problem - UAVHAP handle
+% problem - DynamicProblem instance
 % currentGenFES - remaining FES for current environment
 % Outputs:
 % pop - updated Solution object array
