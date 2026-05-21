@@ -31,3 +31,8 @@ desktop.ini
 # Temporary files
 *.tmp
 *.log
+
+# Agent/domain docs (local-only)
+docs/
+AGENTS.md
+CONTEXT.md
