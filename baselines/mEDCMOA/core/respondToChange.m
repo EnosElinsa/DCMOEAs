@@ -1,11 +1,11 @@
-function [pop, FT, state, responseMaxFES] = respondToChange(pop, config, state, problem, currentGenFES)
+function [pop, FT, state, responseMaxFES] = respondToChange(pop, params, state, problem, currentGenFES)
 % respondToChange - Tribe-based dynamic response strategy for mEDCMOA.
 % Steps: (1) generate random sub-population, (2) classify tribes,
 % (3) fitness-based elite selection, (4) coordinate search,
 % (5) velocity-based adjustment, (6) re-evaluate, (7) final tribe selection.
 % Inputs:
 % pop - Solution object array
-% config - configuration struct (with .eachGenMaxFES, .responseFESRate, .popSize, .delta)
+% params - responseParams struct (with .eachGenMaxFES, .responseFESRate, .popSize, .delta, .domain)
 % state - mutable runtime state
 % problem - DynamicProblem instance
 % currentGenFES - remaining FES for current environment
@@ -15,12 +15,12 @@ function [pop, FT, state, responseMaxFES] = respondToChange(pop, config, state, 
 % state - updated runtime state
 % responseMaxFES - remaining FES budget after response
 
-    popsize = config.algo.popSize;
-    domain = problem.getDomain();
-    delta = config.delta;
+    popsize = params.popSize;
+    domain = params.domain;
+    delta = params.delta;
     D = size(domain, 1);
 
-    responseMaxFES = currentGenFES - config.eachGenMaxFES * (1 - config.responseFESRate);
+    responseMaxFES = currentGenFES - params.eachGenMaxFES * (1 - params.responseFESRate);
 
     %% Generate random sub-population R
     nRandom = floor(0.5 * popsize);
@@ -111,7 +111,7 @@ function [pop, FT, state, responseMaxFES] = respondToChange(pop, config, state, 
 
     %% Final tribe-aware selection
     pop = selectPopulation(FT, DIT, NIT, popsize);
-    responseMaxFES = responseMaxFES + config.eachGenMaxFES * (1 - config.responseFESRate);
+    responseMaxFES = responseMaxFES + params.eachGenMaxFES * (1 - params.responseFESRate);
 end
 
 function tribe = applyVelocity(tribe, velocity, domain)

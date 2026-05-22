@@ -9,8 +9,8 @@ classdef DcnsgaiiBDriver < TrialDriver
     end
 
     methods
-        function obj = DcnsgaiiBDriver(config)
-            obj@TrialDriver(config);
+        function obj = DcnsgaiiBDriver(config, problemFactory)
+            obj@TrialDriver(config, problemFactory);
         end
     end
 

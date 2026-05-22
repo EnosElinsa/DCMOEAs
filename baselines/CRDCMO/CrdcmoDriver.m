@@ -19,8 +19,8 @@ classdef CrdcmoDriver < TrialDriver
     end
 
     methods
-        function obj = CrdcmoDriver(config)
-            obj@TrialDriver(config);
+        function obj = CrdcmoDriver(config, problemFactory)
+            obj@TrialDriver(config, problemFactory);
         end
     end
 

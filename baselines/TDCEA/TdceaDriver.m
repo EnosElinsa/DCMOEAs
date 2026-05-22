@@ -20,8 +20,8 @@ classdef TdceaDriver < TrialDriver
     end
 
     methods
-        function obj = TdceaDriver(config)
-            obj@TrialDriver(config);
+        function obj = TdceaDriver(config, problemFactory)
+            obj@TrialDriver(config, problemFactory);
         end
     end
 

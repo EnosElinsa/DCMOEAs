@@ -17,7 +17,6 @@ function config = createConfig(varargin)
     config.run.numRuns      = 30;               % number of independent runs
     config.run.numWorkers   = 0;                % number of parallel workers (0 = serial)
     config.run.seedBase     = 200;              % seed base
-    config.run.problemIndex = 1;                % problem index (baseline compatibility)
 
     %% ======================== overrides ========================
     for i = 1:2:length(varargin)

@@ -38,11 +38,11 @@ function runBenchmark(problemFactory, varargin)
         fprintf('[%d/%d] Running algorithm: %s\n', aIdx, length(algorithms), algoName);
 
         try
-            % Add algorithm path
-            addpath(genpath(fullfile('baselines', algoName)));
+            % Lookup driver constructor from registry
+            driverCtor = AlgorithmRegistry.lookup(algoName);
 
             % Construct trialFn
-            trialFn = @(seed) runSingleTrial(algoName, seed, config, problemFactory);
+            trialFn = @(seed) runSingleTrial(driverCtor, seed, config, problemFactory);
 
             % Call batch execution
             runTrialBatch( ...
@@ -113,36 +113,36 @@ end
 
 
 function setupFrameworkPaths()
-% setupFrameworkPaths - Add framework common paths.
+% setupFrameworkPaths - Add framework common and baseline paths.
     rootDir = fileparts(mfilename('fullpath'));
     addpath(genpath(fullfile(rootDir, 'common')));
+    addpath(genpath(fullfile(rootDir, 'baselines')));
 end
 
 
-function result = runSingleTrial(algoName, seed, config, problemFactory)
+function result = runSingleTrial(driverCtor, seed, config, problemFactory)
 % runSingleTrial - Execute a single algorithm trial.
 %
-% Set seed, store problemFactory in config, call algorithm's runAlgorithmTrial.
+% Set seed, construct the driver via the registry-provided constructor,
+% and call driver.run().
 %
 % Input:
-%   algoName       - algorithm name
+%   driverCtor     - driver constructor handle (from AlgorithmRegistry.lookup)
 %   seed           - random seed
 %   config         - framework configuration struct
 %   problemFactory - problem factory function handle
 
-    % Ensure framework and algorithm paths are available (parallel workers may need this)
+    % Ensure framework paths are available (parallel workers may need this)
     rootDir = fileparts(mfilename('fullpath'));
     addpath(genpath(fullfile(rootDir, 'common')));
-    addpath(genpath(fullfile(rootDir, 'baselines', algoName)));
+    addpath(genpath(fullfile(rootDir, 'baselines')));
 
     % Set seed
     config.run.seed = seed;
 
-    % Store problemFactory in config for initTrial to use
-    config.problemFactory = problemFactory;
-
-    % Call algorithm's runAlgorithmTrial
-    result = runAlgorithmTrial(config);
+    % Construct driver and run trial
+    driver = driverCtor(config, problemFactory);
+    result = driver.run();
 end
 
 

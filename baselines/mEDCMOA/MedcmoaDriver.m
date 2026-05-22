@@ -4,8 +4,7 @@ classdef MedcmoaDriver < TrialDriver
 % Implements the multi-tribe evolutionary dynamic constrained multi-objective
 % algorithm. mEDCMOA uses its own evolution logic (selectMatingPool, sbxPm,
 % classifyTribes, selectPopulation) rather than the common evolve.m, and has
-% a unique loop structure where the environment change check occurs BEFORE
-% the evolution step, with a currentGenFES > 0 guard on evolution.
+% a currentGenFES > 0 guard on evolution inside evolveStep.
 %
 % Reference: mEDCMOA paper operator parameters (proC=0.8, disC=5, proM=0.05, disM=40).
 
@@ -16,46 +15,13 @@ classdef MedcmoaDriver < TrialDriver
         delta           % Per-variable search step sizes [D×1]
         eachGenMaxFES   % FES budget per environment change
         responseFESRate % Fraction of FES allocated to change response
+        preEvolution    % Pre-evolution generation count (mEDCMOA paper: 80)
     end
 
     methods
-        function obj = MedcmoaDriver(config)
-            obj@TrialDriver(config);
-        end
-
-        function result = run(this)
-        % run - Execute mEDCMOA's trial loop.
-        %
-        %   mEDCMOA's loop differs from the standard Shape B loop:
-        %   the environment change check occurs at the TOP of the loop
-        %   (before evolution), and evolution is guarded by currentGenFES > 0.
-        %
-        %   Loop structure: change check → evolveStep (guarded) → gen++
-
-            [this.problem, this.config, this.initialPop, this.state, this.controller, this.maxgen] = ...
-                initTrial(this.config);
-            this.initialize();
-
-            while this.state.gen <= this.maxgen
-                % --- Environment change check (at top of loop) ---
-                if mod(this.state.gen, this.config.algo.maxGenPerEnv) == 0 && this.state.gen ~= 0
-                    if this.controller.stepEnvironment(this.problem, this.currentPop())
-                        break;
-                    end
-                    this.respondToChange();
-                end
-
-                % --- Evolution (guarded) ---
-                this.evolveStep();
-
-                if mod(this.state.gen, 100) == 0
-                    fprintf('    Gen=%d\n', this.state.gen);
-                end
-                this.state.gen = this.state.gen + 1;
-            end
-
-            this.controller.finalSelect(this.currentPop());
-            result = this.controller.getResult();
+        function obj = MedcmoaDriver(config, problemFactory)
+            obj@TrialDriver(config, problemFactory);
+            obj.progressEveryGen = 100;
         end
     end
 
@@ -73,12 +39,12 @@ classdef MedcmoaDriver < TrialDriver
             this.delta = max(ranges / 10, 1e-6);
             this.responseFESRate = 0.7;
 
-            this.config.algo.preEvolution = 80;
+            this.preEvolution = 80;
             changeTimes = 60;
-            problemIndex = this.config.run.problemIndex; %#ok<NASGU> preserved for maxFESTable indexing
-            maxFESTable  = [900000000, 152000];
+            % mEDCMOA paper Table II: total FES budget (ADR-0002, ADR-0003)
+            totalMaxFES = 900000000;
             this.eachGenMaxFES = floor( ...
-                (maxFESTable(1, 1) - this.config.algo.preEvolution * this.config.algo.popSize) / changeTimes);
+                (totalMaxFES - this.preEvolution * this.config.algo.popSize) / changeTimes);
 
             this.currentGenFES = Inf;
         end
@@ -116,12 +82,14 @@ classdef MedcmoaDriver < TrialDriver
             this.currentGenFES = this.currentGenFES - numel(this.pop);
 
             % Tribe-based change response
-            responseConfig = this.config;
-            responseConfig.eachGenMaxFES = this.eachGenMaxFES;
-            responseConfig.responseFESRate = this.responseFESRate;
-            responseConfig.delta = this.delta;
+            responseParams = struct( ...
+                'eachGenMaxFES',   this.eachGenMaxFES, ...
+                'responseFESRate', this.responseFESRate, ...
+                'delta',           this.delta, ...
+                'popSize',         this.config.algo.popSize, ...
+                'domain',          this.config.domain);
             [this.pop, FT, this.state, this.currentGenFES] = ...
-                respondToChange(this.pop, responseConfig, this.state, this.problem, this.currentGenFES);
+                respondToChange(this.pop, responseParams, this.state, this.problem, this.currentGenFES);
 
             % Update nondominated archive
             updateNondominatedSet(FT, Solution.empty(), this.config.algo.popSize);

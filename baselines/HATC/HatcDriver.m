@@ -6,14 +6,13 @@ classdef HatcDriver < TrialDriver
 % prediction for change response, with dual-population evolution after
 % the first environment.
 %
-% Loop structure: Shape A (change check at TOP of loop, before evolution).
-% This requires overriding run() like mEDCMOA.
-%
 % Key behaviors:
 %   - Environment 1 (gen < maxGenPerEnv): single-pop NSGA-II evolution
 %   - Environment 2+ (gen >= maxGenPerEnv): dual-pop with diveHisSelection
 %   - Change response: stash pop into memoryArchive, then CGLP prediction
 %     or random+SBX fallback for population regeneration
+%   - beforeChangeCheck stashes pop into memoryArchive before each boundary
+%   - progressEveryGen = 50 for generation progress printing
 
     properties (Access = private)
         pop             % Current population [1×N Solution array]
@@ -28,50 +27,20 @@ classdef HatcDriver < TrialDriver
     end
 
     methods
-        function obj = HatcDriver(config)
-            obj@TrialDriver(config);
-        end
-
-        function result = run(this)
-        % run - Execute HATC's Shape A trial loop.
-        %
-        %   HATC's loop differs from the standard Shape B loop:
-        %   the environment change check occurs at the TOP of the loop
-        %   (before evolution), with `state.gen <= maxgen` and gen++ at bottom.
-        %
-        %   Loop structure: change check → evolveStep → gen++
-
-            [this.problem, this.config, this.initialPop, this.state, this.controller, this.maxgen] = ...
-                initTrial(this.config);
-            this.initialize();
-
-            while this.state.gen <= this.maxgen
-                % --- Environment change check (at top of loop) ---
-                if mod(this.state.gen, this.config.algo.maxGenPerEnv) == 0 && this.state.gen ~= 0
-                    % Stash current pop into memory archive FIRST
-                    this.memoryArchive{end+1} = this.pop;
-
-                    if this.controller.stepEnvironment(this.problem, this.pop)
-                        break;
-                    end
-                    this.respondToChange();
-                end
-
-                % --- Evolution ---
-                this.evolveStep();
-
-                if mod(this.state.gen, 50) == 0
-                    fprintf('    Gen=%d\n', this.state.gen);
-                end
-                this.state.gen = this.state.gen + 1;
-            end
-
-            this.controller.finalSelect(this.currentPop());
-            result = this.controller.getResult();
+        function obj = HatcDriver(config, problemFactory)
+            obj@TrialDriver(config, problemFactory);
+            obj.progressEveryGen = 50;
         end
     end
 
     methods (Access = protected)
+        function beforeChangeCheck(this)
+        % beforeChangeCheck - Stash current pop into memory archive.
+        %   Called by the sealed TrialDriver.run() at each environment
+        %   boundary, immediately before controller.stepEnvironment.
+            this.memoryArchive{end+1} = this.pop;
+        end
+
         function initialize(this)
             this.pop = this.initialPop;
             this.uPop = this.initialPop;
