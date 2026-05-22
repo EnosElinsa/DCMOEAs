@@ -9,7 +9,7 @@ A MATLAB benchmark framework for evaluating evolutionary algorithms on dynamic c
 - **Dynamic environment support**: automatic environment switching with configurable change frequency
 - **Hypervolume-based evaluation**: post-processing computes per-trial HV with global reference point
 - **Parallel execution**: optional `parfor`-based multi-run parallelism
-- **Extensible**: add new algorithms by subclassing `TrialDriver` with a 2-line `runAlgorithmTrial.m` wrapper, new problems by subclassing `DynamicProblem`
+- **Extensible**: add new algorithms by subclassing `TrialDriver` and registering with `AlgorithmRegistry`, new problems by subclassing `DynamicProblem`
 
 ## Project Structure
 
@@ -34,8 +34,10 @@ DCMOEAs/
 │   │   └── tournamentSelection.m
 │   ├── population/             # Population initialization & evaluation
 │   ├── metrics/                # HV computation & result analysis
-│   └── trial/                  # Trial lifecycle management
-│       └── TrialDriver.m      # Abstract base class for algorithm drivers
+│   ├── trial/                  # Trial lifecycle management
+│   │   └── TrialDriver.m      # Abstract base class (Sealed run loop)
+│   └── registry/              # Algorithm dispatch
+│       └── AlgorithmRegistry.m # Name → TrialDriver constructor mapping
 ├── baselines/
 │   ├── CRDCMO/                 # Constraint-relaxation dual-population CMO
 │   ├── DCNSGAII_A/             # Dynamic NSGA-II variant A (random replacement)
@@ -84,11 +86,11 @@ runBenchmark(@myProblemFactory, ...
 
 ## Adding a New Algorithm
 
-New algorithms are added by subclassing `TrialDriver` — an abstract base class that owns the trial loop (initialization, generation advancement, change-point detection, and termination). You implement four methods that define your algorithm's behavior, and the framework handles the rest.
+New algorithms are added by subclassing `TrialDriver` and registering with `AlgorithmRegistry`. The sealed `run()` method owns the trial loop; you implement four methods that define your algorithm's behavior.
 
 ### 1. Create a `TrialDriver` subclass
 
-Create `baselines/MyAlgo/MyAlgoDriver.m` with the 5-method skeleton (constructor + 4 abstract methods):
+Create `baselines/MyAlgo/MyAlgoDriver.m`:
 
 ```matlab
 classdef MyAlgoDriver < TrialDriver
@@ -98,8 +100,8 @@ classdef MyAlgoDriver < TrialDriver
     end
 
     methods
-        function obj = MyAlgoDriver(config)
-            obj@TrialDriver(config);
+        function obj = MyAlgoDriver(config, problemFactory)
+            obj@TrialDriver(config, problemFactory);
         end
     end
 
@@ -121,30 +123,23 @@ classdef MyAlgoDriver < TrialDriver
         function respondToChange(this)
             % React to an environment change. Called after stepEnvironment
             % returns false (trial continues). Refresh population as needed.
-            % Example: random replacement, prediction, re-initialization, etc.
         end
 
         function pop = currentPop(this)
-            % Return the current population for controller use
-            % (feasibility checks, best-solution selection).
+            % Return the current population for controller use.
             pop = this.pop;
         end
     end
 end
 ```
 
-### 2. Create the 2-line `runAlgorithmTrial.m` wrapper
-
-Create `baselines/MyAlgo/runAlgorithmTrial.m`:
+### 2. Register with AlgorithmRegistry
 
 ```matlab
-function result = runAlgorithmTrial(config)
-    driver = MyAlgoDriver(config);
-    result = driver.run();
-end
+AlgorithmRegistry.register('MyAlgo', @MyAlgoDriver);
 ```
 
-This wrapper preserves the per-baseline entry-point contract that `runBenchmark` and `runTrialBatch` expect.
+Or, for permanent inclusion, add the entry to the default registry in `common/registry/AlgorithmRegistry.m`.
 
 ### 3. Run it
 
@@ -160,12 +155,14 @@ runBenchmark(@myProblemFactory, 'algorithms', {'MyAlgo'});
 | `evolveStep(this)` | One generation: variation → evaluation → selection. Mutates `this.state`. |
 | `respondToChange(this)` | Handle environment change (re-init, predict, adapt). |
 | `currentPop(this)` | Return the population used for feasibility/termination decisions. |
+| `beforeChangeCheck(this)` | *(Optional override)* Hook fired before each environment-change check. Default no-op. |
 
 ### Notes
 
-- The base class provides `this.config`, `this.problem`, `this.controller`, `this.state`, `this.maxgen`, and `this.initialPop` as protected properties — use them freely in your subclass.
-- `evolveStep` and `respondToChange` mutate state in place via handle semantics. They take no arguments and return nothing.
-- For multi-population algorithms, `currentPop` returns whichever population the controller should use for feasibility-based decisions (e.g., `pop1` for dual-population designs).
+- `run()` is **Sealed** — you cannot override the trial loop. All customization goes through the four abstract methods + the optional `beforeChangeCheck` hook.
+- The constructor takes `(config, problemFactory)` — both are stored as protected properties.
+- The base class provides `this.config`, `this.problemFactory`, `this.problem`, `this.controller`, `this.state`, `this.maxgen`, and `this.initialPop` as protected properties.
+- Set `this.progressEveryGen = N` in the constructor to emit progress prints every N generations (0 = disabled).
 - Each baseline owns its `operatorParams` struct inline with literature attribution — these are algorithm characteristics, not framework configuration.
 
 ## Adding a New Problem
