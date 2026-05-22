@@ -39,12 +39,12 @@ DCMOEAs/
 │   └── registry/              # Algorithm dispatch
 │       └── AlgorithmRegistry.m # Name → TrialDriver constructor mapping
 ├── baselines/
-│   ├── CRDCMO/                 # Constraint-relaxation dual-population CMO
-│   ├── DCNSGAII_A/             # Dynamic NSGA-II variant A (random replacement)
-│   ├── DCNSGAII_B/             # Dynamic NSGA-II variant B (mutation response)
-│   ├── HATC/                   # History-Assisted Temporal Correlation
-│   ├── mEDCMOA/                # Modified evolutionary DCMO algorithm
-│   └── TDCEA/                  # Two-population DE coevolution
+│   ├── CRDCMO/                 # Coevolutionary Response framework for DCMOPs (Bao et al., 2025)
+│   ├── DCNSGAII_A/             # Dynamic NSGA-II variant A — random replacement (Azzouz et al., 2015)
+│   ├── DCNSGAII_B/             # Dynamic NSGA-II variant B — polynomial mutation response (Azzouz et al., 2015)
+│   ├── HATC/                   # History-Assisted Two-state auxiliary task Collaboration (Zhang et al., 2025)
+│   ├── mEDCMOA/                # Multipopulation Evolution-based DCMO Algorithm (Chen et al., 2024)
+│   └── TDCEA/                  # Two-population Dynamic Constrained Evolutionary Algorithm (Chen et al., 2024)
 ├── examples/
 │   ├── runExample.m            # Quick-start example script
 │   └── DCDTLZ/                 # DC-DTLZ benchmark problems
@@ -198,6 +198,20 @@ end
 - Statistics and Machine Learning Toolbox (for `pdist2`)
 - Parallel Computing Toolbox (optional, for `run.numWorkers > 0`)
 - Pre-compiled Hypervolume MEX binary (included for Windows x64)
+
+## References
+
+The six baseline algorithms re-implement the following papers:
+
+- **CRDCMO** — Bao, Q., Wang, M., Yang, S., Dai, G., & Chen, X. (2025). A Coevolutionary Response Framework for Dynamic Constrained Multi-Objective Optimization Problems. *IEEE Transactions on Evolutionary Computation*. [doi:10.1109/TEVC.2025.3595410](https://doi.org/10.1109/TEVC.2025.3595410)
+
+- **DCNSGAII_A / DCNSGAII_B** — Azzouz, R., Bechikh, S., & Ben Said, L. (2015). Multi-objective optimization with dynamic constraints and objectives: new challenges for evolutionary algorithms. *Proceedings of the 2015 Annual Conference on Genetic and Evolutionary Computation*, 615–622.
+
+- **HATC** — Zhang, D., Yu, K., Liang, J., Qiao, K., Qu, B., Chen, K., Yue, C., & Wang, L. (2025). History-Assisted Two-State Auxiliary Task Collaboration Approach for Dynamic Constrained Multiobjective Optimization. *IEEE Transactions on Evolutionary Computation*, 29(6), 2386–2400. [doi:10.1109/TEVC.2024.3425756](https://doi.org/10.1109/TEVC.2024.3425756)
+
+- **mEDCMOA** — Chen, Q., Ding, J., Yen, G. G., Yang, S., & Chai, T. (2024). Multipopulation Evolution-Based Dynamic Constrained Multiobjective Optimization Under Diverse Changing Environments. *IEEE Transactions on Evolutionary Computation*, 28(3), 763–777. [doi:10.1109/TEVC.2023.3241762](https://doi.org/10.1109/TEVC.2023.3241762)
+
+- **TDCEA** — Chen, G., Guo, Y., Wang, Y., Liang, J., Gong, D., & Yang, S. (2024). Evolutionary Dynamic Constrained Multiobjective Optimization: Test Suite and Algorithm. *IEEE Transactions on Evolutionary Computation*, 28(5), 1381–1395. [doi:10.1109/TEVC.2023.3313689](https://doi.org/10.1109/TEVC.2023.3313689)
 
 ## License
 
